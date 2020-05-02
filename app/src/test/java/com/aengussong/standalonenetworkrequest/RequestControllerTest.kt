@@ -1,6 +1,9 @@
 package com.aengussong.standalonenetworkrequest
 
-import android.os.Handler
+import com.aengussong.standalonenetworkrequest.model.Repo
+import com.aengussong.standalonenetworkrequest.model.RequestResponse
+import com.aengussong.standalonenetworkrequest.network.RequestController
+import com.aengussong.standalonenetworkrequest.network.RequestMethod
 import org.awaitility.Awaitility.await
 import org.awaitility.kotlin.untilNotNull
 import org.junit.Assert
@@ -11,22 +14,26 @@ import java.util.concurrent.TimeUnit
 
 class RequestControllerTest {
 
-    private val requestController = RequestController()
+    private val requestController =
+        RequestController()
 
     @Test
     fun `make get request - should return success`() {
         val username = "aengussong"
         val api = "https://api.github.com/users/$username/repos"
         val url = URL(api)
-        var response: ReposResponse? = null
+        var response: RequestResponse<Array<Repo>>? = null
 
-        requestController.makeRequest<ReposResponse>(RequestMethod.GET, url){resp ->
+        requestController.makeRequest<Array<Repo>>(
+            RequestMethod.GET,
+            url
+        ) { resp ->
             response = resp
         }
 
-        await().atMost(requestController.TIMEOUT, TimeUnit.MILLISECONDS)
-            .untilNotNull<ReposResponse>(response)
-        Assert.assertTrue(response.isSuccessful)
+        await().atMost(requestController.timeout.toLong(), TimeUnit.MILLISECONDS)
+            .untilNotNull { response }
+        Assert.assertTrue(response?.isSuccessful ?: false)
     }
 
     @Test
