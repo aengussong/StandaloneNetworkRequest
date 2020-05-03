@@ -2,10 +2,7 @@ package com.aengussong.standalonenetworkrequest.parser
 
 import org.junit.Assert
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 
-@RunWith(JUnit4::class)
 class ResponseParserTest {
 
     private val parser: Parser = ResponseParser()
@@ -14,12 +11,13 @@ class ResponseParserTest {
     fun parseObjectJson_shouldParseSuccessfully() {
         val name = "test"
         val size = 10
-        val json = "{\"$name\":\"test\", \"size\":$size}"
+        val json = "{\"name\":\"$name\", \"size\":$size}"
 
 
         val parsed = parser.parse(json, JsonDummy::class)
 
-        Assert.assertEquals(JsonDummy(name, size), parsed)
+        Assert.assertEquals(name, parsed!!.name)
+        Assert.assertEquals(size, parsed.size)
     }
 
     @Test(expected = UnsupportedOperationException::class)
@@ -31,7 +29,7 @@ class ResponseParserTest {
 
     @Test(expected = UnsupportedOperationException::class)
     fun parseJsonToArray_shouldThrowException() {
-        val json = ""
+        val json = "{}"
 
         parser.parse(json, Array<JsonDummy>::class)
     }
@@ -39,7 +37,7 @@ class ResponseParserTest {
     @Test
     fun parseJsonWithMissingParameterMarkedAsNullableInObject_shouldParseObjectWithNullParameter() {
         val name = "mock"
-        val json = "{\"$name\":\"test\"}"
+        val json = "{\"name\":\"$name\"}"
 
         val parsed = parser.parse(json, JsonDummyNullable::class)
 
@@ -49,5 +47,5 @@ class ResponseParserTest {
     }
 
     class JsonDummy(val name: String, val size: Int)
-    class JsonDummyNullable(val name:String, val size:Int?)
+    class JsonDummyNullable(val name: String, val size: Int?)
 }

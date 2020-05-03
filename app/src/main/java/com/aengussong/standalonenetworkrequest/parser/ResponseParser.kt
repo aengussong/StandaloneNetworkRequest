@@ -9,6 +9,7 @@ import org.json.JSONTokener
 import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
+import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.primaryConstructor
 
 /**
@@ -58,7 +59,8 @@ class ResponseParser : Parser {
      * Does not deserialize [JSONArray]
      * */
     private fun checkAvailability(klass: KClass<out Any>) {
-        if (klass is Array<*>) {
+        //crutch
+        if (klass.qualifiedName == "kotlin.Array") {
             throw UnsupportedOperationException("JSON parsing to Array is not supported")
         }
     }
