@@ -18,10 +18,6 @@ class Utils {
             return buffer.toString()
         }
 
-        fun <T> parseString(data: String): T {
-            return data as T
-        }
-
         val NUMBER_OF_CORES: Int by lazy { Runtime.getRuntime().availableProcessors() }
     }
 }

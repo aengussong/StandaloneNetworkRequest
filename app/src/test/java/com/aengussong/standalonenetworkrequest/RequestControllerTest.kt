@@ -1,7 +1,7 @@
 package com.aengussong.standalonenetworkrequest
 
 import com.aengussong.standalonenetworkrequest.model.Repo
-import com.aengussong.standalonenetworkrequest.model.RequestResponse
+import com.aengussong.standalonenetworkrequest.model.NetworkResponse
 import com.aengussong.standalonenetworkrequest.network.RequestController
 import com.aengussong.standalonenetworkrequest.network.RequestMethod
 import org.awaitility.Awaitility.await
@@ -17,11 +17,12 @@ class RequestControllerTest {
     @Test
     fun `make get request - should return success`() {
         val username = "aengussong"
-        val api = "https://api.github.com/users/$username/repos"
+        val repo = "StandaloneNetworkRequest"
+        val api = "https://api.github.com/repos/$username/$repo"
         val url = URL(api)
-        var response: RequestResponse<Array<Repo>>? = null
+        var response: NetworkResponse<Repo>? = null
 
-        RequestController.makeRequest<Array<Repo>>(RequestMethod.GET, url) { resp ->
+        RequestController.makeRequest(RequestMethod.GET, url, Repo::class) { resp ->
             response = resp
         }
 
@@ -41,7 +42,7 @@ class RequestControllerTest {
     }
 
     @Test
-    fun `make request with no network - should throw error`() {
+    fun `make request without network - should throw error`() {
         Assert.fail("not implemented")
     }
 

@@ -1,6 +1,6 @@
 package com.aengussong.standalonenetworkrequest.model
 
-data class RequestResponse<T>(
+data class NetworkResponse<T>(
     val isSuccessful: Boolean,
     val responseCode: Int,
     val data: T?)
