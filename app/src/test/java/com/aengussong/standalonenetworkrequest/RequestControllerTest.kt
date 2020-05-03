@@ -14,9 +14,6 @@ import java.util.concurrent.TimeUnit
 
 class RequestControllerTest {
 
-    private val requestController =
-        RequestController()
-
     @Test
     fun `make get request - should return success`() {
         val username = "aengussong"
@@ -24,14 +21,11 @@ class RequestControllerTest {
         val url = URL(api)
         var response: RequestResponse<Array<Repo>>? = null
 
-        requestController.makeRequest<Array<Repo>>(
-            RequestMethod.GET,
-            url
-        ) { resp ->
+        RequestController.makeRequest<Array<Repo>>(RequestMethod.GET, url) { resp ->
             response = resp
         }
 
-        await().atMost(requestController.timeout.toLong(), TimeUnit.MILLISECONDS)
+        await().atMost(RequestController.timeout.toLong(), TimeUnit.MILLISECONDS)
             .untilNotNull { response }
         Assert.assertTrue(response?.isSuccessful ?: false)
     }
@@ -49,5 +43,15 @@ class RequestControllerTest {
     @Test
     fun `make request with no network - should throw error`() {
         Assert.fail("not implemented")
+    }
+
+    @Test
+    fun `make request to http - should return success`(){
+        Assert.fail()
+    }
+
+    @Test
+    fun `make request to https - should return success`(){
+        Assert.fail()
     }
 }
