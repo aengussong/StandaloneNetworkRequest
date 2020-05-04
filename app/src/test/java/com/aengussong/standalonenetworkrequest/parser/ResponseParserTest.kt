@@ -1,5 +1,6 @@
 package com.aengussong.standalonenetworkrequest.parser
 
+import com.aengussong.standalonenetworkrequest.testUtils.mockLog
 import org.junit.Assert
 import org.junit.Test
 
@@ -8,7 +9,7 @@ class ResponseParserTest {
     private val parser: Parser = ResponseParser()
 
     @Test
-    fun parseObjectJson_shouldParseSuccessfully() {
+    fun `parse object json - should parse successfully`() {
         val name = "test"
         val size = 10
         val json = "{\"name\":\"$name\", \"size\":$size}"
@@ -21,23 +22,24 @@ class ResponseParserTest {
     }
 
     @Test(expected = UnsupportedOperationException::class)
-    fun parseArrayJson_shouldThrowException() {
+    fun `parse array json - should throw exception`() {
         val json = "[]"
 
         parser.parse(json, JsonDummy::class)
     }
 
     @Test(expected = UnsupportedOperationException::class)
-    fun parseJsonToArray_shouldThrowException() {
+    fun `parse json to array - should throw exception`() {
         val json = "{}"
 
         parser.parse(json, Array<JsonDummy>::class)
     }
 
     @Test
-    fun parseJsonWithMissingParameterMarkedAsNullableInObject_shouldParseObjectWithNullParameter() {
+    fun `parse json with missing parameter marked as nullable in object - should parse object with parameter set to null`() {
         val name = "mock"
         val json = "{\"name\":\"$name\"}"
+        mockLog()
 
         val parsed = parser.parse(json, JsonDummyNullable::class)
 
