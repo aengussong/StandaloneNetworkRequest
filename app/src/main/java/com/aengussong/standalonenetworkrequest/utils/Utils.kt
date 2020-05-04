@@ -1,8 +1,6 @@
 package com.aengussong.standalonenetworkrequest.utils
 
-import java.io.InputStream
-import java.io.InputStreamReader
-import java.io.Reader
+import java.io.*
 
 class Utils {
     companion object {
@@ -16,6 +14,13 @@ class Utils {
                 readSize = reader.read(rawBuffer)
             }
             return buffer.toString()
+        }
+
+        fun writeToStream(stream: OutputStream, data: String) {
+            val writer: Writer = OutputStreamWriter(stream, "UTF-8")
+            writer.use {
+                writer.write(data)
+            }
         }
 
         val NUMBER_OF_CORES: Int by lazy { Runtime.getRuntime().availableProcessors() }
