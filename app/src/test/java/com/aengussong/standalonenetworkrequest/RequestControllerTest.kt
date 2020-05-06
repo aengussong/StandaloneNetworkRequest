@@ -6,8 +6,10 @@ import com.aengussong.standalonenetworkrequest.model.NetworkResponse
 import com.aengussong.standalonenetworkrequest.model.Request
 import com.aengussong.standalonenetworkrequest.network.RequestController
 import com.aengussong.standalonenetworkrequest.network.RequestMethod
-import com.aengussong.standalonenetworkrequest.testModels.GetResponse
-import com.aengussong.standalonenetworkrequest.testModels.PostResponse
+import com.aengussong.standalonenetworkrequest.network.RequestMethod.*
+import com.aengussong.standalonenetworkrequest.testModels.BodyResponse
+import com.aengussong.standalonenetworkrequest.testModels.Response
+import com.aengussong.standalonenetworkrequest.testUtils.TEST_URL
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -22,45 +24,52 @@ class RequestControllerTest {
 
     @Test
     fun `make get request - should return success`() {
-        val api = "http://httpbin.org/get"
-        val url = URL(api)
-        val request = Request(RequestMethod.GET, url)
+        val request = getRequest(GET)
 
-        var getResponse: NetworkResponse<GetResponse>? = null
-
-        RequestController().makeRequest(request, GetResponse::class){ networkResponse: NetworkResponse<GetResponse> ->
+        var getResponse: NetworkResponse<Response>? = null
+        RequestController().makeRequest(
+            request,
+            Response::class
+        ) { networkResponse: NetworkResponse<Response> ->
             getResponse = networkResponse
         }
 
-        waitFor(15_000, until = { getResponse != null })
-
+        wait(until = { getResponse != null })
         Assert.assertTrue(getResponse?.isSuccessful ?: false)
     }
 
     @Test
     fun `make post request - should return success`() {
-        val api = "http://httpbin.org/post"
-        val url = URL(api)
-        val body = "{\"test\":\"test\"}"
-        val request = Request(RequestMethod.POST, url, body)
-        var postResponse: NetworkResponse<PostResponse>? = null
+        val request = getRequest(POST, withBody = true)
 
+        var postResponse: NetworkResponse<BodyResponse>? = null
         RequestController().makeRequest(
             request,
-            PostResponse::class
-        ) { networkResponse: NetworkResponse<PostResponse> ->
+            BodyResponse::class
+        ) { networkResponse: NetworkResponse<BodyResponse> ->
             postResponse = networkResponse
         }
 
-        waitFor(15_000, until = { postResponse != null })
-
+        wait(until = { postResponse != null })
         Assert.assertTrue(postResponse?.isSuccessful ?: false)
-        Assert.assertEquals(body, postResponse?.data?.data)
+        Assert.assertEquals(request.body, postResponse?.data?.data)
     }
 
     @Test
     fun `make put request - should return success`() {
-        Assert.fail()
+        val request = getRequest(PUT, withBody = true)
+
+        var putResponse: NetworkResponse<BodyResponse>? = null
+        RequestController().makeRequest(
+            request,
+            BodyResponse::class
+        ) { networkResponse: NetworkResponse<BodyResponse> ->
+            putResponse = networkResponse
+        }
+
+        wait(until = { putResponse != null })
+        Assert.assertTrue(putResponse?.isSuccessful ?: false)
+        Assert.assertEquals(request.body, putResponse?.data?.data)
     }
 
     @Test
@@ -83,7 +92,7 @@ class RequestControllerTest {
         Assert.fail()
     }
 
-    private fun waitFor(millis: Long, until: () -> Boolean) {
+    private fun wait(millis: Long = 15_000L, until: () -> Boolean) {
         var time = 0L
         val step = 100L
         while (!until() && time < millis) {
@@ -94,6 +103,22 @@ class RequestControllerTest {
 
         if (time > millis && !until()) {
             throw WaitTimeIsOverException()
+        }
+    }
+
+    private fun getRequest(method: RequestMethod, withBody: Boolean = false): Request {
+        val api = when (method) {
+            POST -> "$TEST_URL/post"
+            GET -> "$TEST_URL/get"
+            PUT -> "$TEST_URL/put"
+        }
+
+        val url = URL(api)
+        return if (withBody) {
+            val body = "{\"body\":\"body\"}"
+            Request(method, url, body)
+        } else {
+            Request(method, url)
         }
     }
 
