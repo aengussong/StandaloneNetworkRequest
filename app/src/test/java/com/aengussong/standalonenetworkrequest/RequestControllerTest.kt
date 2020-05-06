@@ -1,7 +1,11 @@
 package com.aengussong.standalonenetworkrequest
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import android.os.Build
 import android.os.Looper.getMainLooper
+import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import com.aengussong.standalonenetworkrequest.model.NetworkResponse
 import com.aengussong.standalonenetworkrequest.model.Request
 import com.aengussong.standalonenetworkrequest.network.RequestController
@@ -10,12 +14,14 @@ import com.aengussong.standalonenetworkrequest.network.RequestMethod.*
 import com.aengussong.standalonenetworkrequest.testModels.BodyResponse
 import com.aengussong.standalonenetworkrequest.testModels.Response
 import com.aengussong.standalonenetworkrequest.testUtils.TEST_URL
+import com.aengussong.standalonenetworkrequest.testUtils.TEST_URL_HTTPS
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import java.io.IOException
 import java.net.URL
 
 @Config(sdk = [Build.VERSION_CODES.P])
@@ -73,18 +79,20 @@ class RequestControllerTest {
     }
 
     @Test
-    fun `make request without network - should throw error`() {
-        Assert.fail()
-    }
-
-    @Test
-    fun `make request to http - should return success`() {
-        Assert.fail()
-    }
-
-    @Test
     fun `make request to https - should return success`() {
-        Assert.fail()
+        val apiHttps = "$TEST_URL_HTTPS/get"
+        val request = Request(GET, URL(apiHttps))
+
+        var httpsResponse: NetworkResponse<Response>? = null
+        RequestController().makeRequest(
+            request,
+            Response::class
+        ) { networkResponse: NetworkResponse<Response> ->
+            httpsResponse = networkResponse
+        }
+
+        wait(until = { httpsResponse != null })
+        Assert.assertTrue(httpsResponse?.isSuccessful ?: false)
     }
 
     @Test
@@ -92,17 +100,13 @@ class RequestControllerTest {
         Assert.fail()
     }
 
-    private fun wait(millis: Long = 15_000L, until: () -> Boolean) {
+    private fun wait(millis: Long = 15_000L, until: () -> Boolean = {false}) {
         var time = 0L
         val step = 100L
         while (!until() && time < millis) {
             shadowOf(getMainLooper()).idle()
             time += step
             Thread.sleep(step)
-        }
-
-        if (time > millis && !until()) {
-            throw WaitTimeIsOverException()
         }
     }
 
@@ -121,6 +125,4 @@ class RequestControllerTest {
             Request(method, url)
         }
     }
-
-    class WaitTimeIsOverException : Exception()
 }
