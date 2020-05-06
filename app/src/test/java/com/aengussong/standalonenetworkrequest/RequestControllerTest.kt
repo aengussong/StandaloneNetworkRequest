@@ -1,11 +1,7 @@
 package com.aengussong.standalonenetworkrequest
 
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkInfo
 import android.os.Build
 import android.os.Looper.getMainLooper
-import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import com.aengussong.standalonenetworkrequest.model.NetworkResponse
 import com.aengussong.standalonenetworkrequest.model.Request
 import com.aengussong.standalonenetworkrequest.network.RequestController
@@ -21,7 +17,6 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
-import java.io.IOException
 import java.net.URL
 
 @Config(sdk = [Build.VERSION_CODES.P])
@@ -97,10 +92,19 @@ class RequestControllerTest {
 
     @Test
     fun `on non successful response code - should return unsuccessful response`() {
-        Assert.fail()
+        val internalServerErrorApi = "$TEST_URL/status/500"
+        val request = Request(GET, URL(internalServerErrorApi))
+
+        var notSuccessfulResponse: NetworkResponse<Response>? = null
+        RequestController().makeRequest(request, Response::class) { response ->
+            notSuccessfulResponse = response
+        }
+
+        wait(until = { notSuccessfulResponse != null })
+        Assert.assertFalse(notSuccessfulResponse?.isSuccessful ?: true)
     }
 
-    private fun wait(millis: Long = 15_000L, until: () -> Boolean = {false}) {
+    private fun wait(millis: Long = 15_000L, until: () -> Boolean = { false }) {
         var time = 0L
         val step = 100L
         while (!until() && time < millis) {

@@ -5,7 +5,6 @@ import com.aengussong.standalonenetworkrequest.model.NetworkResponse
 import com.aengussong.standalonenetworkrequest.model.Request
 import com.aengussong.standalonenetworkrequest.parser.Parser
 import com.aengussong.standalonenetworkrequest.utils.Utils
-import java.lang.ref.WeakReference
 import java.net.HttpURLConnection
 import javax.net.ssl.HttpsURLConnection
 import kotlin.reflect.KClass
@@ -59,7 +58,8 @@ class NetworkRequest<T : Any>(
             val response = NetworkResponse<T>(isSuccessful, responseCode, parsedData)
             handler.post { callback.invoke(response) }
         } finally {
-            connection.inputStream.close()
+            connection.inputStream?.close()
+            connection.outputStream?.close()
             connection.disconnect()
         }
     }
