@@ -16,13 +16,15 @@ import kotlin.reflect.KClass
 /**
  * Performs network request on background thread. Request connection timeout and json parser can be adjusted.
  * */
-object RequestController {
+class RequestController {
 
-    /**
-     * Request connection timeout. Can be set through [setRequestConnectionTimeout]
-     * */
-    var timeout: Int = 30_000
-        private set
+    companion object {
+        /**
+         * Request connection timeout. Can be set through [setRequestConnectionTimeout]
+         * */
+        var TIMEOUT = 15_000
+            private set
+    }
 
     /**
      * JSON response parser. Default implementation is [ResponseParser]. Can be set through [setJSONParser]
@@ -42,7 +44,7 @@ object RequestController {
      * @param timeout - request connection timeout
      * */
     fun setRequestConnectionTimeout(timeout: Int) {
-        this.timeout = timeout
+        TIMEOUT = timeout
     }
 
     /**
@@ -67,15 +69,14 @@ object RequestController {
         responseKlass: KClass<T>,
         callback: (NetworkResponse<T>) -> Unit
     ) {
-        val weakCallback = WeakReference(callback)
 
         val requestTask = NetworkRequest(
             request,
             responseKlass,
-            timeout,
+            TIMEOUT,
             handler,
             parser,
-            weakCallback
+            callback
         )
         executor.execute(requestTask)
     }

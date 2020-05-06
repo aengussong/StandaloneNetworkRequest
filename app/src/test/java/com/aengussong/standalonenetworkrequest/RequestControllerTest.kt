@@ -6,9 +6,8 @@ import com.aengussong.standalonenetworkrequest.model.NetworkResponse
 import com.aengussong.standalonenetworkrequest.model.Request
 import com.aengussong.standalonenetworkrequest.network.RequestController
 import com.aengussong.standalonenetworkrequest.network.RequestMethod
+import com.aengussong.standalonenetworkrequest.testModels.GetResponse
 import com.aengussong.standalonenetworkrequest.testModels.PostResponse
-import com.aengussong.standalonenetworkrequest.testModels.Repo
-import org.awaitility.Awaitility.await
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -16,58 +15,47 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import java.net.URL
-import java.util.concurrent.TimeUnit
 
 @Config(sdk = [Build.VERSION_CODES.P])
 @RunWith(RobolectricTestRunner::class)
 class RequestControllerTest {
 
-    //todo Flaky test!!!!!!!!!!
     @Test
     fun `make get request - should return success`() {
-        val username = "aengussong"
-        val repo = "StandaloneNetworkRequest"
-        val api = "https://api.github.com/repos/$username/$repo"
+        val api = "http://httpbin.org/get"
         val url = URL(api)
         val request = Request(RequestMethod.GET, url)
-        shadowOf(getMainLooper())
 
-        var response: NetworkResponse<Repo>? = null
+        var getResponse: NetworkResponse<GetResponse>? = null
 
-        RequestController.makeRequest(request, Repo::class) { networkResponse ->
-            response = networkResponse
+        RequestController().makeRequest(request, GetResponse::class){ networkResponse: NetworkResponse<GetResponse> ->
+            getResponse = networkResponse
         }
 
-        await().atMost(RequestController.timeout.toLong(), TimeUnit.MILLISECONDS)
-            .until {
-                shadowOf(getMainLooper()).runOneTask()
-                response != null
-            }
-        Assert.assertTrue(response?.isSuccessful ?: false)
+        waitFor(15_000, until = { getResponse != null })
+
+        Assert.assertTrue(getResponse?.isSuccessful ?: false)
     }
 
-    //todo Flaky test
     @Test
     fun `make post request - should return success`() {
         val api = "http://httpbin.org/post"
         val url = URL(api)
         val body = "{\"test\":\"test\"}"
         val request = Request(RequestMethod.POST, url, body)
-        var response: NetworkResponse<PostResponse>? = null
-        shadowOf(getMainLooper())
+        var postResponse: NetworkResponse<PostResponse>? = null
 
-
-        RequestController.makeRequest(request, PostResponse::class) { networkResponse ->
-            response = networkResponse
+        RequestController().makeRequest(
+            request,
+            PostResponse::class
+        ) { networkResponse: NetworkResponse<PostResponse> ->
+            postResponse = networkResponse
         }
 
-        await().atMost(RequestController.timeout.toLong(), TimeUnit.MILLISECONDS)
-            .until {
-                shadowOf(getMainLooper()).runOneTask()
-                response != null
-            }
-        Assert.assertTrue(response?.isSuccessful ?: false)
-        Assert.assertEquals(body, response?.data?.data)
+        waitFor(15_000, until = { postResponse != null })
+
+        Assert.assertTrue(postResponse?.isSuccessful ?: false)
+        Assert.assertEquals(body, postResponse?.data?.data)
     }
 
     @Test
@@ -89,4 +77,25 @@ class RequestControllerTest {
     fun `make request to https - should return success`() {
         Assert.fail()
     }
+
+    @Test
+    fun `on non successful response code - should return unsuccessful response`() {
+        Assert.fail()
+    }
+
+    private fun waitFor(millis: Long, until: () -> Boolean) {
+        var time = 0L
+        val step = 100L
+        while (!until() && time < millis) {
+            shadowOf(getMainLooper()).idle()
+            time += step
+            Thread.sleep(step)
+        }
+
+        if (time > millis && !until()) {
+            throw WaitTimeIsOverException()
+        }
+    }
+
+    class WaitTimeIsOverException : Exception()
 }

@@ -3,12 +3,10 @@ package com.aengussong.standalonenetworkrequest.network
 import android.os.Handler
 import com.aengussong.standalonenetworkrequest.model.NetworkResponse
 import com.aengussong.standalonenetworkrequest.model.Request
-import com.aengussong.standalonenetworkrequest.network.RequestController.timeout
 import com.aengussong.standalonenetworkrequest.parser.Parser
 import com.aengussong.standalonenetworkrequest.utils.Utils
 import java.lang.ref.WeakReference
 import java.net.HttpURLConnection
-import java.net.URLConnection
 import javax.net.ssl.HttpsURLConnection
 import kotlin.reflect.KClass
 
@@ -26,10 +24,10 @@ import kotlin.reflect.KClass
 class NetworkRequest<T : Any>(
     private val request: Request,
     private val klass: KClass<T>,
-    private val timout: Int,
+    private val timeout: Int,
     private val handler: Handler,
     private val parser: Parser,
-    private val callback: WeakReference<(NetworkResponse<T>) -> Unit>
+    private val callback: (NetworkResponse<T>) -> Unit
 ) : Runnable {
 
     override fun run() {
@@ -42,7 +40,7 @@ class NetworkRequest<T : Any>(
             request.body?.let { body ->
                 connection.setFixedLengthStreamingMode(body.length)
                 connection.doOutput = true
-                connection.setRequestProperty("Content-Type","application/json");
+                connection.setRequestProperty("Content-Type", "application/json");
                 Utils.writeToStream(connection.outputStream, body)
             } ?: run {
                 connection.connect()
@@ -59,7 +57,7 @@ class NetworkRequest<T : Any>(
             }
 
             val response = NetworkResponse<T>(isSuccessful, responseCode, parsedData)
-            handler.post { callback.get()?.invoke(response) }
+            handler.post { callback.invoke(response) }
         } finally {
             connection.inputStream.close()
             connection.disconnect()

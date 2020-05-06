@@ -1,5 +1,5 @@
 package com.aengussong.standalonenetworkrequest.testModels
 
-data class Repo(val description: String, val size: Int)
+data class GetResponse(val url:String)
 
 data class PostResponse(val data:String)
